@@ -15,7 +15,7 @@ if [ -z "$REPO_NAME" ]; then
 fi
 
 
-ssh influence-os-server \
+ssh ${SERVER_NAME} \
 "export \
 GIT_USER='$GIT_USER' \
 GIT_HOME='$GIT_HOME' \

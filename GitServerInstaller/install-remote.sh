@@ -6,7 +6,7 @@ SCRIPT_DIR="$(dirname "$0")"
 
 source "$SCRIPT_DIR/.env"
 
-ssh influence-os-server \
+ssh ${SERVER_NAME} \
 "export \
 GIT_USER='$GIT_USER' \
 GIT_HOME='$GIT_HOME' \
