@@ -5,6 +5,7 @@ set -e
 SCRIPT_DIR="$(dirname "$0")"
 
 source "$SCRIPT_DIR/.env"
+source "$SCRIPT_DIR/../.env"
 
 ssh ${SERVER_NAME} \
 "export \
