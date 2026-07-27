@@ -1,11 +1,27 @@
 # ============================================
 # WonderBoxV2 - Production Docker Compose
 # ============================================
-# Brings up the full stack: PostgreSQL + Redis + app + admin + nginx.
+# Brings up the app + admin Spring Boot backends. PostgreSQL and Redis
+# live in compose/middleware.yml (shared across projects). nginx runs on
+# the host (NginxInstaller/conf/wbox-app, wbox-admin) and proxies to
+# these containers' published ports (8080 / 8081).
 #
 # The backend jars are NOT baked into the image. They are bind-mounted
 # from the host so you can redeploy by swapping the jar file and
 # restarting the container - no image rebuild needed.
+
+# Shared service defaults. base.yml is the canonical source - keep in sync.
+# (YAML anchors don't cross file boundaries in compose, so each file that
+# uses <<: *base-config must define its own copy of the anchor.)
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
 
 services:
   # --- User-facing backend (app) ---

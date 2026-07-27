@@ -1,3 +1,16 @@
+# Shared service defaults. base.yml is the canonical source - keep in sync.
+# (YAML anchors don't cross file boundaries in compose, so each file that
+# uses <<: *base-config must define its own copy of the anchor.)
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
 services:
   redis:
     <<: *base-config
@@ -6,16 +19,19 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - redis:/data/redis
-    env_file: 
+      - redis_data:/data/redis
+    env_file:
       - ../env/redis.env
     command: ["sh", "-c", "redis-server --requirepass \"$REDIS_PASSWORD\""]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      # redis-cli -a needs the password to actually authenticate; without it
+      # PING returns NOAUTH on a requirepass-protected server and the check
+      # would never go healthy.
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
-  
+
   postgres:
     <<: *base-config
     image: pgvector/pgvector:pg16
@@ -26,10 +42,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - ../env/postgres.env
-    # environment:
-    #   POSTGRES_USER: ${POSTGRES_USERNAME}
-    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   POSTGRES_DB: ${POSTGRES_DATABASE}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 10s

@@ -16,6 +16,3 @@ admin.env
 # Frontend dist (rebuilt by pnpm build)
 web/dist/
 admin/dist/
-
-# Leave nginx prod.conf tracked - it is config, not a secret.
-!nginx/.gitkeep

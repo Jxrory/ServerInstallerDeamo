@@ -1,6 +1,9 @@
 name: jxrory
 
-base-config: &base-config
+# Shared defaults merged into every service via `<<: *base-config`.
+# Defined under x-base-config so compose treats it as an extension field
+# (top-level keys in compose are a closed set: services/networks/volumes/...).
+x-base-config: &base-config
   restart: unless-stopped
   networks:
     - ops-network
