@@ -1,0 +1,16 @@
+name: jxrory
+
+base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+networks:
+  ops-network:
+    name: ops-network
+    driver: bridge
