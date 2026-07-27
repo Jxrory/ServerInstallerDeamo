@@ -1,0 +1,97 @@
+# ============================================
+# WonderBoxV2 - Production Docker Compose
+# ============================================
+# Brings up the full stack: PostgreSQL + Redis + app + admin + nginx.
+#
+# The backend jars are NOT baked into the image. They are bind-mounted
+# from the host so you can redeploy by swapping the jar file and
+# restarting the container - no image rebuild needed.
+
+services:
+  # --- User-facing backend (app) ---
+  # Runs the fat jar bind-mounted from deploy/jars/wonderbox-app.jar.
+  # The image is the slim JRE 21; no jar is baked in.
+  app:
+    <<: *base-config
+    image: eclipse-temurin:21-jre-jammy
+    container_name: wonderbox-prod-app
+    working_dir: /app
+    volumes:
+      # Mount the jar from the host so redeploy = swap jar + restart.
+      - ./deploy/jars/wonderbox-app.jar:/app/app.jar:ro
+      # Mount logs so they survive container restarts.
+      - ./deploy/logs/app:/app/logs
+    # The command line carries the jar path; nothing is baked into an image.
+    # JAVA_OPTS is expanded by sh inside the container (the $$ escapes the $,
+    # so compose does NOT try to interpolate it from the host env).
+    command: ["sh", "-c", "exec java $$JAVA_OPTS -jar /app/app.jar"]
+    # Business config + secrets live in deploy/app.env (literal values,
+    # no interpolation). See deploy/app.env.example.
+    env_file:
+      - ../env/redis.env
+      - ../env/postgres.env
+      - ./deploy/app.env
+    environment:
+      # These need compose interpolation / service-name resolution, so they
+      # stay here. They override any same-named key in app.env.
+      SPRING_PROFILES_ACTIVE: ${APP_PROFILE:-prod}
+      # --- Postgres (compose service DNS) ---
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-wonderbox}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      # --- Redis (compose service DNS) ---
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    # Direct access for debugging. In real production, remove this and
+    # let nginx be the only entry point.
+    ports:
+      - "8080:8080"
+
+  # --- Admin backend ---
+  admin:
+    <<: *base-config
+    image: eclipse-temurin:21-jre-jammy
+    container_name: wonderbox-prod-admin
+    working_dir: /app
+    volumes:
+      - ./deploy/jars/wonderbox-admin.jar:/app/app.jar:ro
+      - ./deploy/logs/admin:/app/logs
+    command: ["sh", "-c", "exec java $$JAVA_OPTS -jar /app/app.jar"]
+    env_file:
+      - ../env/redis.env
+      - ../env/postgres.env
+      - ./deploy/admin.env
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ADMIN_PROFILE:-prod}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-wonderbox}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8081/actuator/health || wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    ports:
+      - "8081:8081"
+

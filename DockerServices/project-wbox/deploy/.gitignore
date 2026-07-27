@@ -1,0 +1,21 @@
+# Keep the deploy/ directory structure in git but ignore its contents.
+# The jars and env file are built/edited on the host and must not be
+# committed (they contain secrets and build artifacts).
+
+# Jars (rebuilt from mvn package, copied here for bind-mount)
+jars/*.jar
+
+# Logs
+logs/
+
+# Real secrets - env files with real values (examples are tracked)
+.env
+app.env
+admin.env
+
+# Frontend dist (rebuilt by pnpm build)
+web/dist/
+admin/dist/
+
+# Leave nginx prod.conf tracked - it is config, not a secret.
+!nginx/.gitkeep
