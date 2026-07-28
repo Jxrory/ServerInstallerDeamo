@@ -14,16 +14,15 @@ x-base-config: &base-config
 services:
   chatwoot-base-config: &chatwoot-base-config
     <<: *base-config
-    image: chatwoot/chatwoot:v4.16.2
-    env_file: .env ## Change this file for customized env variables
+    image: chatwoot/chatwoot:latest
+    env_file: ./deploy/.env ## Change this file for customized env variables
     volumes:
       - storage_data:/app/storage
+      - ./deploy/config/llm.yml:/app/config/llm.yml
 
   rails:
     <<: *chatwoot-base-config
     container_name: chatwoot-rails
-    env_file:
-      - ./deploy/.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,8 +42,6 @@ services:
   sidekiq:
     <<: *chatwoot-base-config
     container_name: chatwoot-sidekiq
-    env_file:
-      - ./deploy/.env
     depends_on:
       postgres:
         condition: service_healthy
