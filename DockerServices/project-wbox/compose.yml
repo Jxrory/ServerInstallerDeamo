@@ -44,8 +44,6 @@ services:
     # Business config + secrets live in deploy/app.env (literal values,
     # no interpolation). See deploy/app.env.example.
     env_file:
-      - ../env/redis.env
-      - ../env/postgres.env
       - ./deploy/app.env
     environment:
       # These need compose interpolation / service-name resolution, so they
@@ -86,8 +84,6 @@ services:
       - ./deploy/logs/admin:/app/logs
     command: ["sh", "-c", "exec java $$JAVA_OPTS -jar /app/app.jar"]
     env_file:
-      - ../env/redis.env
-      - ../env/postgres.env
       - ./deploy/admin.env
     environment:
       SPRING_PROFILES_ACTIVE: ${ADMIN_PROFILE:-prod}

@@ -27,12 +27,13 @@ server {
     ssl_certificate     /etc/ssl/certs/makemoney2g.com/fullchain.pem;
     ssl_certificate_key /etc/ssl/private/makemoney2g.com/privkey.pem;
 
-    # --- Admin frontend (prebuilt dist under /admin) ---
-    # Serve the admin SPA at /admin/* and fall back to its index.html.
-    location /admin/ {
-        alias /usr/share/nginx/html/wbox-admin/;
-        try_files $uri $uri/ /admin/index.html;
-    }
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    access_log /var/log/nginx/wbox_admin_access.log;
+    error_log /var/log/nginx/wbox_admin_error.log;
 
     # Spring Boot admin container (docker, port published to host).
     # All paths proxy straight through - the admin app handles /api/v1/admin/,
@@ -55,5 +56,18 @@ server {
         proxy_connect_timeout 10s;
         proxy_send_timeout    60s;
         proxy_read_timeout    60s;
+    }
+
+    # --- Admin frontend (prebuilt dist under /admin) ---
+    # Serve the admin SPA at /admin/* and fall back to its index.html.
+    location /admin/ {
+        alias /usr/share/nginx/html/wbox-admin/;
+        try_files $uri $uri/ /admin/index.html;
+    }
+    
+    location /assets/ {
+        alias /usr/share/nginx/html/wbox-admin/;
+        try_files $uri =404;
+        expires 1h;
     }
 }

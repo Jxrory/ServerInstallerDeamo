@@ -28,17 +28,13 @@ server {
     ssl_certificate     /etc/ssl/certs/makemoney2g.com/fullchain.pem;
     ssl_certificate_key /etc/ssl/private/makemoney2g.com/privkey.pem;
 
-    # SPA fallback for the user app.
-    location / {
-        alias /usr/share/nginx/html/wbox-web/;
-        try_files $uri $uri/ /index.html;
-    }
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
 
-    location /assets/ {
-        alias /usr/share/nginx/html/wbox-web/;
-        try_files $uri =404;
-        expires 1h;
-    }
+    access_log /var/log/nginx/wbox_app_access.log;
+    error_log /var/log/nginx/wbox_app_error.log;
 
     # --- User-facing API -> app container (port 8080) ---
     location /api/v1/app/ {
@@ -79,5 +75,11 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # SPA fallback for the user app.
+    location / {
+        alias /usr/share/nginx/html/wbox-web/;
+        try_files $uri $uri/ /index.html;
     }
 }
