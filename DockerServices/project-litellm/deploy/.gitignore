@@ -1,0 +1,6 @@
+# Keep the deploy/ directory structure in git but ignore its contents.
+# The env file is edited on the host and must not be committed
+# (it contains secrets).
+
+# Real secrets - env file with real values (example is tracked)
+.env
