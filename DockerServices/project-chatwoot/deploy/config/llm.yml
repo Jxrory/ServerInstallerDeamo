@@ -5,26 +5,28 @@ providers:
     display_name: 'Anthropic'
   gemini:
     display_name: 'Gemini'
+  custom_openai:
+    display_name: 'Custom OpenAI Compatible'
 
 models:
   deepseek-v4-flash:
-    provider: openai
+    provider: custom_openai
     display_name: 'Deepseek-v4 Flash'
     credit_multiplier: 1
   deepseek-v4-pro:
-    provider: openai
+    provider: custom_openai
     display_name: 'Deepseek-v4 Pro'
     credit_multiplier: 1
   mimo-v2.5:
-    provider: openai
+    provider: custom_openai
     display_name: 'MiMo-V2.5'
     credit_multiplier: 1
   glm-5.2:
-    provider: openai
+    provider: custom_openai
     display_name: 'GLM-5.2'
     credit_multiplier: 2
   kimi-k3:
-    provider: openai
+    provider: custom_openai
     display_name: 'Kimi K3'
     credit_multiplier: 3
   gpt-4.1:
