@@ -1,0 +1,24 @@
+{
+  "$schema": "https://www.getbifrost.ai/schema",
+  "governance": {
+    "auth_config": {
+        "is_enable": true,
+        "admin_username": "env.BIFROST_ADMIN_USERNAME",
+        "admin_password": "env.BIFROST_ADMIN_PASSWORD"
+    }
+  },
+  "config_store": {
+    "enabled": true,
+    "type": "sqlite",
+    "config": {
+      "path": "/app/data/config.db"
+    }
+  },
+  "logs_store": {
+    "enabled": true,
+    "type": "sqlite",
+    "config": {
+      "path": "/app/data/logs.db"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+services:
+  bifrost:
+    <<: *base-config
+    image: maximhq/bifrost:v1.6.6
+    container_name: bifrost
+    env_file:
+      - ./deploy/.env
+    ports:
+      - "2437:8080" # 九宫格输入法定端口: bifr → 2437
+    volumes:
+      - bifrost-data:/app/data
+      - ./deploy/config.json:/app/data/config.json
+
+
+volumes:
+  bifrost-data:
