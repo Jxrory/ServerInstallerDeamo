@@ -15,6 +15,8 @@ docker exec -it postgres psql -U postgres -c "\l"
 
 ```sh
 docker compose --env-file ./env/postgres.env --env-file ./env/redis.env -f project-chatwoot/compose.yml -f compose/base.yml -f compose/middleware.yml up -d rails sidekiq
+
+docker compose --env-file ./env/postgres.env --env-file ./env/redis.env -f project-chatwoot/compose.yml -f compose/base.yml -f compose/middleware.yml restart rails sidekiq
 ```
 
 ### 开启所有的企业功能
