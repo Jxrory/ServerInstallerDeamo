@@ -1,0 +1,35 @@
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+# docker run -d  --restart=always --name registry -v /mnt/DockerFileData/registry:/var/lib/registry 
+# -e REGISTRY_PROXY_REMOTEURL=https://registry-1.docker.io -p 5000:5000 registry:2.8
+services:
+  registry:
+    <<: *base-config
+    image: registry:2.8
+    container_name: registry
+    ports:
+      - "5000:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+    environment:
+      # 指定上游仓库为 Docker Hub
+      - REGISTRY_PROXY_REMOTEURL=https://registry-1.docker.io
+      # 环境变量，就是开启 Registry API 管理功能的开关
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
+      # 设置代理 否则容器里无法访问外网
+      # Docker 默认桥接网络（bridge）中，主机的网关地址通常是 172.17.0.1（如果未修改过）
+      # 容器可以通过这个 IP 访问主机上监听的端口
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - NO_PROXY=${NO_PROXY:-}
+
+volumes:
+  registry_data:
