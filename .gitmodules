@@ -1,0 +1,3 @@
+[submodule "DockerServices/server-cloakbrowser-manager/external/CloakBrowser-Manager"]
+	path = DockerServices/server-cloakbrowser-manager/external/CloakBrowser-Manager
+	url = https://github.com/Jxrory/CloakBrowser-Manager.git

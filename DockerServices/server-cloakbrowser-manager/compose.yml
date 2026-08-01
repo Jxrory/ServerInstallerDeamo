@@ -1,0 +1,54 @@
+# ============================================
+# Hermes Agent + CloakBrowser - Docker Compose
+# ============================================
+# Two containers:
+#   hermes         - Hermes agent + gateway + cron (custom image, TK plugin baked in)
+#   cloakbrowser   - CloakBrowser Manager sidecar (built from /opt/Code/ai/CloakBrowser-Manager)
+#
+# Shared services (postgres + redis + litellm) come from ServerInstallerDeamo's
+# compose/middleware.yml and project-litellm/compose.yml on the ops-network.
+#
+# Usage (from ServerInstallerDeamo/DockerServices/):
+#   docker compose \
+#     --env-file ./env/postgres.env \
+#     --env-file ./env/redis.env \
+#     -f /opt/Code/Project/TpaOs/CreatorSamplesInfoAgent/deploy/compose.yml \
+#     -f compose/base.yml \
+#     -f compose/middleware.yml \
+#     -f project-litellm/compose.yml \
+#     up -d hermes cloakbrowser
+#
+# Or standalone (without shared services - they must already be running):
+#   docker compose -f deploy/compose.yml --env-file deploy/.env up -d hermes cloakbrowser
+
+# Shared service defaults. base.yml is the canonical source - keep in sync.
+# (YAML anchors don't cross file boundaries in compose, so each file that
+# uses <<: *base-config must define its own copy of the anchor.)
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+services:
+  cloakbrowser-manager:
+    <<: *base-config
+    build:
+      context: ./external/CloakBrowser-Manager
+      dockerfile: Dockerfile
+    image: cloakbrowser-manager:local
+    container_name: cloakbrowser-manager
+    environment:
+      AUTH_TOKEN: ${CLOAKBROWSER_MANAGER_TOKEN:?CLOAKBROWSER_MANAGER_TOKEN is required}
+    ports:
+      - "127.0.0.1:2526:8080"   # API + noVNC WebSocket - localhost only (nginx in front)
+    volumes:
+      - cloakbrowser_manager_data:/data
+
+
+volumes:
+  cloakbrowser_manager_data:
