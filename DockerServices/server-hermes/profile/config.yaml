@@ -152,7 +152,7 @@ custom_providers:
     base_url: http://bifrost:8080/v1
     key_env: BIFROST_API_KEY
     api_mode: chat_completions
-    default_model: opencode-go/deepseek-v4-flash
+    default_model: bifrost/deepseek-v4-flash
 platforms:
   feishu:
     enabled: true

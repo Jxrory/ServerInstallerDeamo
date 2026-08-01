@@ -43,6 +43,7 @@ services:
     container_name: hermes-gateway
     volumes:
       - hermes-agent-data:/opt/data
+      - ./profile/.env:/opt/data/.env
       - ./profile/config.yaml:/opt/data/config.yaml
       - ./profile/SOUL.md:/opt/data/SOUL.md
       - ./profile/cron:/opt/data/cron
@@ -50,7 +51,7 @@ services:
       - ./profile/sessions:/opt/data/sessions
       - ./profile/skills:/opt/data/skills
     env_file:
-      - ./profile/.env
+      - ./.env
     command: ["gateway", "run"]
     ports:
       - '8642:8642'
