@@ -19,7 +19,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8549:8549"
+      - "127.0.0.1:8549:8549"
     environment:
       GATEWAY_API_KEY: ${GATEWAY_API_KEY:-changeme}
       DATABASE_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:?DB_PASSWORD is required}@${DB_HOST:-postgres}:${DB_POST:-5432}/${DB_DATABASE:-tkgateway}
