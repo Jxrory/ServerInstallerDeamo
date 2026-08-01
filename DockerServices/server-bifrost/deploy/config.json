@@ -2,7 +2,7 @@
   "$schema": "https://www.getbifrost.ai/schema",
   "governance": {
     "auth_config": {
-        "is_enable": true,
+        "is_enabled": true,
         "admin_username": "env.BIFROST_ADMIN_USERNAME",
         "admin_password": "env.BIFROST_ADMIN_PASSWORD"
     }
