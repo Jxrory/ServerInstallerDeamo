@@ -1,0 +1,36 @@
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+services:
+  tk-gateway:
+    <<: *base-config
+    image: tk-gateway:local
+    container_name: tk-gateway
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8549:8549"
+    environment:
+      GATEWAY_API_KEY: ${GATEWAY_API_KEY:-changeme}
+      DATABASE_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:?DB_PASSWORD is required}@${DB_HOST:-postgres}:${DB_POST:-5432}/${DB_DATABASE:-tkgateway}
+      TK_PROXY: ${TK_PROXY:-}
+      GATEWAY_BASE_URL: ${GATEWAY_BASE_URL:-http://localhost:8549}
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn tk_gateway.main:app --host 0.0.0.0 --port 8549"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8549/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
