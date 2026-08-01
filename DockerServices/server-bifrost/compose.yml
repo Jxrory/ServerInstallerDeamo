@@ -11,7 +11,7 @@ x-base-config: &base-config
 services:
   bifrost:
     <<: *base-config
-    image: maximhq/bifrost:v1.6.6
+    image: maximhq/bifrost:v1.6.5
     container_name: bifrost
     env_file:
       - ./deploy/.env
