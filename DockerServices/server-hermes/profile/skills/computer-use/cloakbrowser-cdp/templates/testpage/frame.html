@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta charset="utf-8"><title>Frame Page</title></head>
+<body>
+  <input id="inner-input" placeholder="iframe 内输入"><br>
+  <button id="inner-btn">iframe 提交</button>
+  <div id="inner-result">(inner empty)</div>
+  <script>
+    document.getElementById('inner-btn').addEventListener('click', () => {
+      document.getElementById('inner-result').textContent =
+        'inner-ok:' + document.getElementById('inner-input').value;
+    });
+  </script>
+</body>
+</html>

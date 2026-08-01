@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta charset="utf-8"><title>CDP Test Page</title></head>
+<body>
+  <h1>CDP 实操测试页</h1>
+  <p id="page-status">ready</p>
+  <form id="login-form" onsubmit="event.preventDefault(); doLogin();">
+    <input id="username" name="username" placeholder="请输入用户名"><br>
+    <input id="password" name="password" type="password"><br>
+    <button id="login-btn" type="submit">登录</button>
+  </form>
+  <div id="result">(empty)</div>
+
+  <hr>
+  <button id="counter-btn">计数: <span id="count">0</span></button>
+  <hr>
+  <iframe id="login-frame" src="frame.html" style="width:400px;height:140px"></iframe>
+  <hr>
+  <a id="open-window" href="javascript:void(0)" onclick="window.open('popup.html','_blank','width=400,height=300')">打开新窗口</a>
+
+  <script>
+    window.__agentFlag = null;
+    function doLogin() {
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+      document.getElementById('result').textContent =
+        'submitted: ' + u + '/' + p;
+    }
+    document.getElementById('counter-btn').addEventListener('click', () => {
+      const c = document.getElementById('count');
+      c.textContent = parseInt(c.textContent, 10) + 1;
+    });
+  </script>
+</body>
+</html>
