@@ -8,10 +8,7 @@ upstream hermes_gateway_backend {
     keepalive 32;
 }
 
-map $http_upgrade $connection_upgrade {
-    default upgrade;
-    ''      close;
-}
+# $connection_upgrade is defined once in /etc/nginx/conf.d/websocket.conf
 
 server {
     listen 443 ssl http2;

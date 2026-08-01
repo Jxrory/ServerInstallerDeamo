@@ -14,12 +14,12 @@ services:
     image: maximhq/bifrost:v1.6.5
     container_name: bifrost
     env_file:
-      - ./deploy/.env
+      - ./.env
     ports:
       - "2437:8080" # 九宫格输入法定端口: bifr → 2437
     volumes:
       - bifrost-data:/app/data
-      - ./deploy/config.json:/app/data/config.json
+      - ./config.json:/app/data/config.json
 
 
 volumes:
