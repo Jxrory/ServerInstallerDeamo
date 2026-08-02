@@ -1,7 +1,28 @@
 ## 启动命令
 
 ```sh
-docker compose -f server-hermes/compose.yml -f compose/base.yml up -d hermes-gateway
+HERMES_UID=$(id -u) HERMES_GID=$(id -g) docker compose --env-file ./env/db.env -f server-hermes/compose.yml -f compose/base.yml up -d hermes-gateway
+```
+
+## UID/GID 配置(重要)
+
+容器镜像内部的 `hermes` 用户默认 UID/GID 为 `10000:10000`, 而宿主机普通用户(如 `ubuntu`)通常是 `1000:1000`。二者不一致会导致 bind-mount 的 `profile/` 目录(cron、memories、sessions、skills)出现权限问题: 容器写入的文件宿主机读不了, 宿主机写入的文件容器读不了。
+
+**部署时务必**在 `.env` 里把 `HERMES_UID` / `HERMES_GID` 设为运行 docker 命令的宿主机用户的 UID/GID。镜像的 s6-overlay 启动脚本会据此把内部 `hermes` 用户 remap 到这个值, 从而消除权限错配。
+
+```sh
+# 查看当前用户的 UID/GID
+id -u && id -g
+
+# 写入 .env (例如 ubuntu 用户)
+HERMES_UID=1000
+HERMES_GID=1000
+```
+
+如果容器曾以错误的 UID(如 10000)运行过, 已有文件的属主需要手动修复:
+
+```sh
+sudo chown -R $(id -u):$(id -g) server-hermes/profile
 ```
 
 ## LLM 配置
@@ -19,3 +40,51 @@ Hermes 通过 Bifrost 网关(`http://bifrost:8080/v1`,走 ops-network 容器网�
 1. 拷贝整个 `server-hermes/` 目录(含 `deploy/config.yaml` 和 `deploy/.env`)。
 2. 确保 `deploy/.env` 里 `BIFROST_API_KEY` 等密钥已填(从 `.env.example` 复制后补全)。
 3. 执行启动命令即可。config.yaml 是 bind-mount,不需要从数据卷恢复。
+
+## 插件: tk-tpa
+
+`profile/plugins/tk-tpa/` 是 TikTok Shop Partner Center 工具插件(子模块),提供 4 个工具覆盖达人样品审核全流程: 拉取样品申请、达人详情、DeepSeek 85 分制评分、飞书卡片发送。详见 `profile/plugins/tk-tpa/README.md`。
+
+### 克隆含子模块
+
+```sh
+git clone --recurse-submodules <repo>
+# 或已克隆后:
+git submodule update --init --recursive
+```
+
+### 启用插件
+
+在 `profile/config.yaml` 中合并(参考 `profile/plugins/tk-tpa/config/config.yaml.example`):
+
+```yaml
+plugins:
+  enabled: ["tk-tpa"]
+
+platform_toolsets:
+  cron:
+    enabled: ["tk-tpa"]
+```
+
+> 注意: 现有 `platform_toolsets` 用的是列表式(`cli: - hermes-cli`), 而 tk-tpa 的 example 用的是 `enabled: [...]` 式。合并时按平台实际支持的格式填, 二者 Hermes 都能识别。
+
+### 环境变量
+
+插件运行所需的 `DATABASE_URL`、`CLOAKBROWSER_URL`、`CLOAKBROWSER_PROFILE_ID`、`TK_PARTNER_ID`、`LLM_BASE_URL`、`LLM_API_KEY` 等需在 `server-hermes/.env` 中填(模板见 `.env.example` 的「tk-tpa 插件」段)。完整列表见 `profile/plugins/tk-tpa/README.md`。
+
+### 数据库初始化(首次部署)
+
+插件依赖共享 pg16 实例上的 `tk_gateway` 数据库(3 张表)。首次部署需执行:
+
+```sh
+docker exec -i postgres psql -U postgres -f - < profile/plugins/tk-tpa/db/init-pg.sql
+```
+
+`DATABASE_URL` 必须指向 `tk_gateway` 数据库。
+
+### 依赖
+
+- **CloakBrowser**: 浏览器工具(`tk_sample_requests`、`tk_creator_detail`)需要已登录的 CloakBrowser sidecar 会话, 由 `CLOAKBROWSER_URL` + `CLOAKBROWSER_PROFILE_ID` 指定。
+- **Postgres**: 评分与缓存持久化, 由 `DATABASE_URL` 指定(需先跑 `init-pg.sql`)。
+- **LLM**: `tk_score_creator` 调用 DeepSeek 评分, 默认走 Bifrost(`LLM_BASE_URL=http://bifrost:8080/v1`)。
+- **飞书**: S/A 级达人发卡片, 复用 `profile/.env` 中的 `FEISHU_HOME_CHANNEL`。
