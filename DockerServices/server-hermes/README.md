@@ -1,7 +1,7 @@
 ## 启动命令
 
 ```sh
-docker compose -f server-hermes/compose.yml -f compose/base.yml up -d hermes-gateway
+HERMES_UID=$(id -u) HERMES_GID=$(id -g) docker compose -f server-hermes/compose.yml -f compose/base.yml up -d hermes-gateway
 ```
 
 ## UID/GID 配置(重要)
