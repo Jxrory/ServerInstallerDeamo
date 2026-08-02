@@ -43,7 +43,14 @@ Hermes 通过 Bifrost 网关(`http://bifrost:8080/v1`,走 ops-network 容器网�
 
 ## 插件: tk-tpa
 
-`profile/plugins/tk-tpa/` 是 TikTok Shop Partner Center 工具插件(子模块),提供 4 个工具覆盖达人样品审核全流程: 拉取样品申请、达人详情、DeepSeek 85 分制评分、飞书卡片发送。详见 `profile/plugins/tk-tpa/README.md`。
+`profile/plugins/tk-tpa/` 是 TikTok Shop Partner Center 工具插件(子模块),提供 5 个工具覆盖达人合作全流程: 拉取样品申请、达人详情、DeepSeek 85 分制评分、飞书卡片发送、IM 会话抓取与自动回复。详见 `profile/plugins/tk-tpa/README.md`。
+
+### 定时任务
+
+线上运行两个每小时执行的定时任务,配置和流程详见 [定时任务文档](./docs/定时任务.md):
+
+- **样品审核**: 拉申请 -> 达人详情 -> DeepSeek 评分 -> S/A 级发飞书卡片
+- **IM 未回复自动回复**: 抓取 Not replied 会话 -> DeepSeek 生成回复(话术模板) -> 发送到 TK IM
 
 ### 克隆含子模块
 
@@ -74,7 +81,7 @@ platform_toolsets:
 
 ### 数据库初始化(首次部署)
 
-插件依赖共享 pg16 实例上的 `tk_gateway` 数据库(3 张表)。首次部署需执行:
+插件依赖共享 pg16 实例上的 `tk_gateway` 数据库(5 张表)。首次部署需执行:
 
 ```sh
 docker exec -i postgres psql -U postgres -f - < profile/plugins/tk-tpa/db/init-pg.sql
@@ -84,7 +91,7 @@ docker exec -i postgres psql -U postgres -f - < profile/plugins/tk-tpa/db/init-p
 
 ### 依赖
 
-- **CloakBrowser**: 浏览器工具(`tk_sample_requests`、`tk_creator_detail`)需要已登录的 CloakBrowser sidecar 会话, 由 `CLOAKBROWSER_URL` + `CLOAKBROWSER_PROFILE_ID` 指定。
+- **CloakBrowser**: 浏览器工具(`tk_sample_requests`、`tk_creator_detail`、`tk_im_messages`)需要已登录的 CloakBrowser sidecar 会话, 由 `CLOAKBROWSER_URL` + `CLOAKBROWSER_PROFILE_ID` 指定。
 - **Postgres**: 评分与缓存持久化, 由 `DATABASE_URL` 指定(需先跑 `init-pg.sql`)。
 - **LLM**: `tk_score_creator` 调用 DeepSeek 评分, 默认走 Bifrost(`LLM_BASE_URL=http://bifrost:8080/v1`)。
 - **飞书**: S/A 级达人发卡片, 复用 `profile/.env` 中的 `FEISHU_HOME_CHANNEL`。
