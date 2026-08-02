@@ -50,6 +50,7 @@ services:
       - ./profile/memories:/opt/data/memories
       - ./profile/sessions:/opt/data/sessions
       - ./profile/skills:/opt/data/skills
+      - ./profile/plugins:/opt/data/plugins
     env_file:
       - ./.env
     command: ["gateway", "run"]

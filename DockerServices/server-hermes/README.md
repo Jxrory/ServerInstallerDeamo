@@ -40,3 +40,51 @@ Hermes 通过 Bifrost 网关(`http://bifrost:8080/v1`,走 ops-network 容器网�
 1. 拷贝整个 `server-hermes/` 目录(含 `deploy/config.yaml` 和 `deploy/.env`)。
 2. 确保 `deploy/.env` 里 `BIFROST_API_KEY` 等密钥已填(从 `.env.example` 复制后补全)。
 3. 执行启动命令即可。config.yaml 是 bind-mount,不需要从数据卷恢复。
+
+## 插件: tk-tpa
+
+`profile/plugins/tk-tpa/` 是 TikTok Shop Partner Center 工具插件(子模块),提供 4 个工具覆盖达人样品审核全流程: 拉取样品申请、达人详情、DeepSeek 85 分制评分、飞书卡片发送。详见 `profile/plugins/tk-tpa/README.md`。
+
+### 克隆含子模块
+
+```sh
+git clone --recurse-submodules <repo>
+# 或已克隆后:
+git submodule update --init --recursive
+```
+
+### 启用插件
+
+在 `profile/config.yaml` 中合并(参考 `profile/plugins/tk-tpa/config/config.yaml.example`):
+
+```yaml
+plugins:
+  enabled: ["tk-tpa"]
+
+platform_toolsets:
+  cron:
+    enabled: ["tk-tpa"]
+```
+
+> 注意: 现有 `platform_toolsets` 用的是列表式(`cli: - hermes-cli`), 而 tk-tpa 的 example 用的是 `enabled: [...]` 式。合并时按平台实际支持的格式填, 二者 Hermes 都能识别。
+
+### 环境变量
+
+插件运行所需的 `DATABASE_URL`、`CLOAKBROWSER_URL`、`CLOAKBROWSER_PROFILE_ID`、`TK_PARTNER_ID`、`LLM_BASE_URL`、`LLM_API_KEY` 等需在 `server-hermes/.env` 中填(模板见 `.env.example` 的「tk-tpa 插件」段)。完整列表见 `profile/plugins/tk-tpa/README.md`。
+
+### 数据库初始化(首次部署)
+
+插件依赖共享 pg16 实例上的 `tk_gateway` 数据库(3 张表)。首次部署需执行:
+
+```sh
+docker exec -i postgres psql -U postgres -f - < profile/plugins/tk-tpa/db/init-pg.sql
+```
+
+`DATABASE_URL` 必须指向 `tk_gateway` 数据库。
+
+### 依赖
+
+- **CloakBrowser**: 浏览器工具(`tk_sample_requests`、`tk_creator_detail`)需要已登录的 CloakBrowser sidecar 会话, 由 `CLOAKBROWSER_URL` + `CLOAKBROWSER_PROFILE_ID` 指定。
+- **Postgres**: 评分与缓存持久化, 由 `DATABASE_URL` 指定(需先跑 `init-pg.sql`)。
+- **LLM**: `tk_score_creator` 调用 DeepSeek 评分, 默认走 Bifrost(`LLM_BASE_URL=http://bifrost:8080/v1`)。
+- **飞书**: S/A 级达人发卡片, 复用 `profile/.env` 中的 `FEISHU_HOME_CHANNEL`。

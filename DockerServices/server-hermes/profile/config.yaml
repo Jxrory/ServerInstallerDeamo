@@ -145,8 +145,10 @@ platform_toolsets:
     - hermes-teams
   google_chat:
     - hermes-google_chat
+  cron:
+    - tk-tpa
 plugins:
-  enabled: []
+  enabled: ["tk-tpa"]
 custom_providers:
   - name: bifrost
     base_url: http://bifrost:8080/v1

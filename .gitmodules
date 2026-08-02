@@ -1,3 +1,6 @@
 [submodule "DockerServices/server-cloakbrowser-manager/external/CloakBrowser-Manager"]
 	path = DockerServices/server-cloakbrowser-manager/external/CloakBrowser-Manager
 	url = https://github.com/Jxrory/CloakBrowser-Manager.git
+[submodule "DockerServices/server-hermes/profile/plugins/tk-tpa"]
+	path = DockerServices/server-hermes/profile/plugins/tk-tpa
+	url = git@github.com:Jxrory/hermes-plugin-tk-tpa.git
