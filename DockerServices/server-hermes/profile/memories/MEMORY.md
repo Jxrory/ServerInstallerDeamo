@@ -1,0 +1,3 @@
+CloakBrowser Manager: 容器内 http://cloakbrowser-manager:8080, Bearer token ykkjEAWdaSdUk3VMlsY9zoxv4_KsgFPQa4nv2。Profile c485ff8d-d2b7-41f8-86f9-a993a5fde04c (TpaBrowser01) 已登录 TikTok Partner Center 账号 'Nice M'。
+§
+TkGatewayService 网关: 容器内 http://tk-gateway:8549 (外部域名经 Cloudflare 不可直连)。X-API-Key: 1f61EdaA5e353aFDdb42bef3Bd119eA1。账号 id=1 (Nice M): sample_partner_id=8667434091362813713, creator_partner_id=8667381864053704465。POST /api/v1/accounts 创建/更新, GET 列表端点返回 405 属正常。

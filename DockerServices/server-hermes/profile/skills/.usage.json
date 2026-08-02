@@ -11,5 +11,18 @@
     "state": "active",
     "use_count": 1,
     "view_count": 1
+  },
+  "tiktok-partner-credentials": {
+    "archived_at": null,
+    "created_at": "2026-08-01T16:10:22.778764+00:00",
+    "created_by": null,
+    "last_patched_at": "2026-08-01T16:10:22.778788+00:00",
+    "last_used_at": "2026-08-01T16:10:31.138159+00:00",
+    "last_viewed_at": "2026-08-01T16:10:31.135083+00:00",
+    "patch_count": 1,
+    "pinned": false,
+    "state": "active",
+    "use_count": 1,
+    "view_count": 1
   }
 }

@@ -107,6 +107,59 @@ delegation:
   max_iterations: 50
 skills:
   creation_nudge_interval: 15
+  disabled:
+    - airtable
+    - arxiv
+    - audiocraft-audio-generation
+    - baoyu-infographic
+    - blogwatcher
+    - claude-code
+    - claude-design
+    - codebase-inspection
+    - codex
+    - comfyui
+    - computer-use
+    - design-md
+    - dogfood
+    - evaluating-llms-harness
+    - excalidraw
+    - gif-search
+    - github-auth
+    - github-code-review
+    - github-issues
+    - github-pr-workflow
+    - github-repo-management
+    - google-workspace
+    - heartmula
+    - huggingface-hub
+    - humanizer
+    - jupyter-live-kernel
+    - llama-cpp
+    - manim-video
+    - maps
+    - nano-pdf
+    - notion
+    - obsidian
+    - ocr-and-documents
+    - opencode
+    - openhue
+    - p5js
+    - petdex
+    - polymarket
+    - popular-web-designs
+    - powerpoint
+    - pretext
+    - research-paper-writing
+    - segment-anything-model
+    - serving-llms-vllm
+    - sketch
+    - songsee
+    - songwriting-and-ai-music
+    - teams-meeting-pipeline
+    - touchdesigner-mcp
+    - weights-and-biases
+    - youtube-content
+    - yuanbao
 code_execution:
   timeout: 300
   max_tool_calls: 50
