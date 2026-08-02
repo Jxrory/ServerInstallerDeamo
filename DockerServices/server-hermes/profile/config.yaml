@@ -201,7 +201,8 @@ platform_toolsets:
   cron:
     - tk-tpa
 plugins:
-  enabled: ["tk-tpa"]
+  enabled:
+    - tk-tpa
 custom_providers:
   - name: bifrost
     base_url: http://bifrost:8080/v1

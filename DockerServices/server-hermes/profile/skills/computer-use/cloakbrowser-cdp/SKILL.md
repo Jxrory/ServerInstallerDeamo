@@ -84,16 +84,20 @@ skill 自带副本：`scripts/test_cdp.py` + `templates/testpage/`（index/frame
 2. WS 握手必须带 Bearer header，漏掉 → 401 拒连
 3. `networkidle` 在 SPA/埋点页永不触发 → 用 `wait_for_selector` 等业务元素
 4. 元素找不到 → 先查是否在 iframe（换 `frame_locator`）/ Shadow DOM（evaluate 穿透）/ 另一个标签页（遍历 `ctx.pages`）
-5. 点击无反应 → `scroll_into_view_if_needed()` 或 `force=True`，事件绑父级则 evaluate 触发
+5. 点击无反应 → 先 `scroll_into_view_if_needed()` 或 `force=True`；仍无效就换点击方式：部分 SPA 只认 Playwright `locator.click()` 的真实输入事件，`evaluate("el.click()")` 的原生 click 会被**静默忽略**（TikTok Partner IM 会话列表实测：原生点击后右侧一直 "No chat selected."，换 `locator.click()` 立即打开）。反之事件绑在父级时 evaluate 触发更稳。两种都试
 6. 页面跳转后 locator 失效（StaleElement）→ 重新查询，别缓存 locator
 7. 中文输入用 `fill()` 最稳；`type()`/`press_sequentially` 走键盘事件，个别站点会丢
 8. `window.open` 新页未加载完就操作会报错 → 先 `wait_for_load_state()`
 9. `browser.close()` 只断连；彻底停浏览器用 `POST /api/profiles/{id}/stop`，别直接杀进程（留锁文件/僵尸 VNC）
 10. 反爬校验：`navigator.webdriver` 应为 false；强风控开 `headless: false` + `humanize: true`（Profile 配置）
+11. ⚠️ 复用已加载页面，别每次 goto 重载（网络慢时重载一次 30s+）：连接后先 `page.url` 判断，已在该页就直接操作；长列表 SPA 加载靠轮询业务文本（如出现 `Unread (11)`）而非 sleep 固定时长
+12. 布局容器嵌套陷阱：大容器（如 `chatRoomContainer`）常同时含「列表 + 内容区」，全局选择器（`[class*="messageRow"]` 之类）会把列表项和内容区一起命中 → 用业务组件独有 class（如 chatd-*）或按几何位置（left>450, width>1000）限定范围
+13. 虚拟列表（如 arco-list-virtual）：只渲染可见项，全量抓取前先点过滤 tab（Unread）缩小范围，或按名字逐个真实点击
 
 ## 参考
 
 - 主文档：`cloakbrowser-manager-usage.md`（架构 / API / 认证 / Profile 字段）
+- TikTok Partner IM 抓取配方：`references/tiktok-partner-im.md`（chatd 组件结构、未读会话抓取流程）+ 可复用脚本 `scripts/grab_im_unread.py`
 - Playwright Locator: https://playwright.dev/python/docs/locators
 - Playwright Page API: https://playwright.dev/python/docs/api/class-page
 - CloakBrowser: https://github.com/CloakHQ/CloakBrowser
