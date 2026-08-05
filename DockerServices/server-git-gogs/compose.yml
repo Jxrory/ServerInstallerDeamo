@@ -1,0 +1,32 @@
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+services:
+  git-gogs:
+    <<: *base-config
+    image: gogs/gogs:latest
+    container_name: git-gogs
+    env_file:
+      - ./.env
+    ports:
+      - "4647:3000"     # HTTP 访问端口; gogs → 4647
+      - "10022:22"      # SSH 访问端口（避免与宿主机 22 冲突）
+
+    volumes:
+      # 将容器内 /data 目录挂载到当前目录下的 ./gogs-data
+      - gogs-data:/data
+
+volumes:
+  gogs-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/Data/Hub/Gogs
