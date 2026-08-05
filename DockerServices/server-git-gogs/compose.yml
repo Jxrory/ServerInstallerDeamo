@@ -16,7 +16,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - "4647:3000"     # HTTP 访问端口; gogs → 4647
+      - "4647:4647"     # HTTP 访问端口; gogs → 4647
       - "10022:22"      # SSH 访问端口（避免与宿主机 22 冲突）
 
     volumes:
