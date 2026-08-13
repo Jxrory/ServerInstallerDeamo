@@ -1,0 +1,37 @@
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+services:
+  keycloak:
+    <<: *base-config
+    image: quay.io/keycloak/keycloak:26.0.7
+    container_name: keycloak
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5392:8080"
+    environment:
+      # 管理员账号
+      KC_BOOTSTRAP_ADMIN_USERNAME: jxrory
+      KC_BOOTSTRAP_ADMIN_PASSWORD: Laijie123$
+      # 数据库配置
+      KC_DB: ${DB_HOST}
+      KC_DB_URL: jdbc:postgresql://${DB_HOST}:${DB_POST}/keycloak
+      KC_DB_USERNAME: ${DB_USERNAME}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
+      # 代理配置（生产常用）
+      KC_PROXY_HEADERS: xforwarded
+      # 测试环境关闭严格hostname检查
+      KC_HOSTNAME_STRICT: false
+      # 如果前面没有Nginx HTTPS
+      KC_HTTP_ENABLED: true
+    command:
+      - start-dev
