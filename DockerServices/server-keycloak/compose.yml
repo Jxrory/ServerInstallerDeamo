@@ -18,10 +18,9 @@ services:
         condition: service_healthy
     ports:
       - "5392:8080"
+    env_file:
+      - ./.env
     environment:
-      # 管理员账号
-      KC_BOOTSTRAP_ADMIN_USERNAME: jxrory
-      KC_BOOTSTRAP_ADMIN_PASSWORD: Laijie123$
       # 数据库配置
       KC_DB: ${DB_HOST}
       KC_DB_URL: jdbc:postgresql://${DB_HOST}:${DB_POST}/keycloak
