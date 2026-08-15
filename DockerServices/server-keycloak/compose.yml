@@ -26,11 +26,5 @@ services:
       KC_DB_URL: jdbc:postgresql://${DB_HOST}:${DB_POST}/keycloak
       KC_DB_USERNAME: ${DB_USERNAME}
       KC_DB_PASSWORD: ${DB_PASSWORD}
-      # 代理配置（生产常用）
-      KC_PROXY_HEADERS: xforwarded
-      # 测试环境关闭严格hostname检查
-      KC_HOSTNAME_STRICT: false
-      # 如果前面没有Nginx HTTPS
-      KC_HTTP_ENABLED: true
     command:
       - start-dev
