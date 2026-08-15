@@ -27,4 +27,4 @@ services:
       KC_DB_USERNAME: ${DB_USERNAME}
       KC_DB_PASSWORD: ${DB_PASSWORD}
     command:
-      - start-dev
+      - start
