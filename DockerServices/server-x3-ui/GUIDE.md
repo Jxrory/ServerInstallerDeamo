@@ -145,8 +145,11 @@ docker restart 3x-ui
 | 监听端口 | `8443`(须等于 `.env` 的 `XRAY_NODE_PORT`) |
 | 协议 | VLESS |
 | 安全 | Reality |
-| 目标网站(dest) | 如 `www.microsoft.com:443` |
+| 目标网站(dest) | `gateway.icloud.com:443`(实测可用, **勿用微软系**) |
+| SNI(serverNames) | `gateway.icloud.com`(必须与 dest 同域且客户端一致) |
 | 私钥/公钥 | 面板一键生成, 公钥给客户端 |
+
+> ⚠️ **dest 目标站选型是 Reality 能否工作的关键**: `www.microsoft.com` 等 Akamai 系站点会在 TLS 握手中途断流, 导致所有客户端"认证通过但连接被关闭"(表现为 timeout)。Xray 官方也警告微软系目标会增加服务器 IP 被墙风险。推荐 `gateway.icloud.com` / `www.samsung.com` / `dl.google.com` 等。改 dest 后 serverNames 与客户端 SNI 必须同步更换。
 
 特点: 无需域名与证书、抗探测能力强, 但**暴露服务器真实 IP**, 且该端口不能走 CF。
 
@@ -202,6 +205,7 @@ docker logs -f --tail 100 3x-ui
 | --- | --- |
 | 面板打不开 | `curl -I http://127.0.0.1:2053` 通则查 Nginx; 再查 CF SSL 模式应为 Full |
 | 订阅链接无法访问 | `docker logs 3x-ui \| grep -i sub`; 本机 `curl -k https://127.0.0.1:2096/` 验证 TLS |
-| 节点不通(方案A) | 端口是否等于映射端口、ufw 是否放行、客户端公钥是否匹配 |
+| 节点不通(方案A) | ① 客户端地址是否绕开了 CF 代理域名 ② dest 目标站是否为微软系(换 `gateway.icloud.com`) ③ 端口/ufw/安全组 ④ 客户端 flow 是否 `xtls-rprx-vision` |
 | 节点不通(方案B) | path 是否一致、nginx `/ws` 是否启用、CF 是否放行 WebSocket |
 | 改了 .env 不生效 | 必须 `up -d --force-recreate`, restart 不会更新端口/env |
+| Reality 握手被服务端关闭且无日志 | 打开入站 `show` 开关看认证判定; 用 `xray x25519 -i <私钥>` 核对公钥; 检查容器内到目标站的连通性 |
