@@ -15,13 +15,14 @@ if ! [[ "$DOMAIN" =~ ^[a-zA-Z0-9.-]+$ ]]; then
   exit 1
 fi
 
-CERT_DIR="/etc/ssl/certs/${DOMAIN}"
-CERT_KEY_DIR="/etc/ssl/private/${DOMAIN}"
+CERT_DIR="/etc/letsencrypt/live/x3ui.${DOMAIN}"
+CERT_KEY_DIR="/etc/letsencrypt/live/x3ui.${DOMAIN}"
 
-# 证书前置检查(按仓库约定路径放置)
+# 证书前置检查(Let's Encrypt 签发后自动生成)
 if [[ ! -f "${CERT_DIR}/fullchain.pem" || ! -f "${CERT_KEY_DIR}/privkey.pem" ]]; then
   echo "❌ 未找到证书: ${CERT_DIR}/fullchain.pem / ${CERT_KEY_DIR}/privkey.pem"
-  echo "   请先放置证书后再执行本脚本。"
+  echo "   本站为灰云直连域名, 需浏览器信任的证书。请先执行:"
+  echo "   sudo certbot certonly --nginx -d x3ui.${DOMAIN}"
   exit 1
 fi
 

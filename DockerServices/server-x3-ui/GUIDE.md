@@ -53,14 +53,13 @@
 
 ### 2.2 证书
 
-按仓库约定路径放置(泛域名或该子域名证书均可):
+本站为**灰云直连域名**, 浏览器/订阅客户端直连源站, 必须使用公网受信证书(Cloudflare Origin CA 证书仅 CF 边缘信任, 灰云下无效):
 
-```
-/etc/ssl/certs/<域名>/fullchain.pem
-/etc/ssl/private/<域名>/privkey.pem
+```sh
+sudo certbot certonly --nginx -d x3ui.<域名>   # Let's Encrypt, 自动续期
 ```
 
-Nginx 反代直接引用上述路径; 订阅服务用的副本放在 `server-x3-ui/cert/`(挂载进容器 `/root/cert`)。
+Nginx 反代引用 `/etc/letsencrypt/live/x3ui.<域名>/fullchain.pem`; 订阅服务使用的副本放在 `server-x3-ui/cert/`(挂载进容器 `/root/cert`)。
 
 ### 2.3 防火墙
 
@@ -124,12 +123,24 @@ docker restart 3x-ui
 
 最终订阅地址形如: `https://x3ui.<域名>:2096/sub/<subId>`, 在面板"订阅"页复制即可。
 
-证书续期后同步副本并重启:
+证书续期后同步副本并重启(certbot 自动续期时也会触发):
 
 ```sh
-sudo cp /etc/ssl/certs/<域名>/fullchain.pem /etc/ssl/private/<域名>/privkey.pem \
+sudo cp /etc/letsencrypt/live/<域名>/fullchain.pem /etc/letsencrypt/live/<域名>/privkey.pem \
    ~/ServerInstallerDeamo/DockerServices/server-x3-ui/cert/
 docker restart 3x-ui
+```
+
+一键部署续期钩子(可选, 自动完成上述动作):
+
+```sh
+sudo tee /etc/letsencrypt/renewal-hooks/deploy/x3ui-sync.sh <<'HOOK'
+#!/usr/bin/env bash
+cp /etc/letsencrypt/live/x3ui.makemoney2g.com/{fullchain.pem,privkey.pem} \
+   ~/ServerInstallerDeamo/DockerServices/server-x3-ui/cert/
+docker restart 3x-ui
+HOOK
+sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/x3ui-sync.sh
 ```
 
 ---
