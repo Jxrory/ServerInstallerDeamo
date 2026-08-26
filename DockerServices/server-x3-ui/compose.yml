@@ -21,6 +21,8 @@ services:
       - "${XRAY_NODE_PORT:-8443}:${XRAY_NODE_PORT:-8443}"
       # 订阅服务端口(面板中配置证书后为 HTTPS), 对外直接暴露
       - "${XUI_SUB_PORT:-2096}:2096"
+      # 额外节点端口(如 Shadowsocks), 与面板中入站端口一致
+      - "${XRAY_NODE_PORT_2:-8445}:8445"
     volumes:
       - ./db:/etc/x-ui
       - ./cert:/root/cert
