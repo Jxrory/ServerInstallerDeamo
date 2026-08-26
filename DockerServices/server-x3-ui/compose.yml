@@ -1,0 +1,27 @@
+x-base-config: &base-config
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+services:
+  3x-ui:
+    <<: *base-config
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    container_name: 3x-ui
+    hostname: 3x-ui
+    env_file:
+      - ./.env
+    ports:
+      # 面板端口只绑定宿主机回环, 公网访问统一走 Nginx TLS 反代
+      - "127.0.0.1:${XUI_PANEL_PORT:-2053}:${XUI_PANEL_PORT:-2053}"
+      # Xray 节点端口(如 VLESS Reality), 按需在面板中创建后对外暴露
+      - "${XRAY_NODE_PORT:-8443}:${XRAY_NODE_PORT:-8443}"
+    volumes:
+      - ./db:/etc/x-ui
+      - ./cert:/root/cert
+    environment:
+      XRAY_VMESS_AEAD_FORCED: ${XRAY_VMESS_AEAD_FORCED:-false}
+      XUI_ENABLE_FAIL2BAN: ${XUI_ENABLE_FAIL2BAN:-true}
