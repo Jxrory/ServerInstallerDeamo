@@ -19,8 +19,9 @@ Internet
 server-x3-ui/
 ├── compose.yml        # 服务编排
 ├── .env               # 端口/开关配置(模板见 .env.example)
+├── GUIDE.md           # 全链路配置指南(DNS/节点/订阅)
 ├── db/                # 面板数据库持久化(/etc/x-ui)
-├── cert/              # 放置给 Xray 用的证书(/root/cert)
+├── cert/              # 放置给 Xray/订阅用的证书(/root/cert)
 ├── README.md
 └── nginx/             # 宿主机 Nginx 反代配置
     ├── x3-ui          # https://x3ui.makemoney2g.com -> 127.0.0.1:2053
@@ -46,8 +47,9 @@ docker logs 3x-ui
 | --- | --- | --- |
 | 2053 | 3x-ui 面板(仅绑定 `127.0.0.1`) | 否, 经 Nginx 反代 |
 | 8443 | Xray 节点入站(如 VLESS Reality) | 是 |
+| 2096 | 订阅服务 HTTPS(证书在面板订阅设置中配置) | 是 |
 
-> 面板创建入站时监听端口需与 `.env` 中 `XRAY_NODE_PORT` 一致才能对外访问; 若新增其它节点端口, 在 `compose.yml` 的 `ports` 追加映射后 `up -d` 重建。
+> 面板创建入站时监听端口需与 `.env` 中 `XRAY_NODE_PORT` 一致才能对外访问; 若新增其它节点端口, 在 `compose.yml` 的 `ports` 追加映射后 `up -d` 重建。全链路配置见 [GUIDE.md](./GUIDE.md)。
 
 ## 数据持久化
 
