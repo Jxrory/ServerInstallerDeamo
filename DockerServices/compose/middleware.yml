@@ -50,7 +50,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
+  nats:
+    <<: *base-config
+    image: nats:2.12.6
+    container_name: nats
+    command: -js
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - nats-data:/data
 
 volumes:
   postgres_data:
   redis_data:
+  nats-data:
