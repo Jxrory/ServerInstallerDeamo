@@ -55,7 +55,7 @@ services:
     <<: *base-config
     image: nats:2.12.6
     container_name: nats
-    command: -js
+    command: ["-js", "-sd", "/data"]
     ports:
       - "4222:4222"
       - "8222:8222"
