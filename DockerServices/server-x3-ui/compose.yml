@@ -9,7 +9,7 @@ x-base-config: &base-config
 services:
   3x-ui:
     <<: *base-config
-    image: ghcr.io/mhsanaei/3x-ui:latest
+    image: ghcr.io/mhsanaei/3x-ui:v3.4.2
     container_name: 3x-ui
     hostname: 3x-ui
     env_file:
@@ -17,12 +17,28 @@ services:
     ports:
       # 面板端口只绑定宿主机回环, 公网访问统一走 Nginx TLS 反代
       - "127.0.0.1:${XUI_PANEL_PORT:-2053}:${XUI_PANEL_PORT:-2053}"
-      # Xray 节点端口(如 VLESS Reality), 按需在面板中创建后对外暴露
-      - "${XRAY_NODE_PORT:-8443}:${XRAY_NODE_PORT:-8443}"
       # 订阅服务端口(面板中配置证书后为 HTTPS), 对外直接暴露
       - "${XUI_SUB_PORT:-2096}:2096"
-      # 额外节点端口(如 Shadowsocks), 与面板中入站端口一致
-      - "${XRAY_NODE_PORT_2:-8445}:8445"
+      # TCP 端口映射
+      - "8441:8441/tcp"
+      - "8442:8442/tcp"
+      - "8443:8443/tcp"
+      - "8444:8444/tcp"
+      - "8445:8445/tcp"
+      - "8446:8446/tcp"
+      - "8447:8447/tcp"
+      - "8448:8448/tcp"
+      - "8449:8449/tcp"
+      # UDP 端口映射
+      - "8441:8441/udp"
+      - "8442:8442/udp"
+      - "8443:8443/udp"
+      - "8444:8444/udp"
+      - "8445:8445/udp"
+      - "8446:8446/udp"
+      - "8447:8447/udp"
+      - "8448:8448/udp"
+      - "8449:8449/udp"
     volumes:
       - ./db:/etc/x-ui
       - ./cert:/root/cert
