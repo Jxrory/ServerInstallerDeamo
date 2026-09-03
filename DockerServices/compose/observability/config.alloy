@@ -2,14 +2,47 @@
 // 采集 Docker 容器日志（docker.sock，零侵入）+ nginx access log -> Loki
 
 // ── Docker 容器日志采集 ──
+// 只采集 4 个业务容器（MG / CRM / driver / CsPiAgent），避免采集监控栈与基础设施自身日志
+// 造成自采循环（如 Loki 日志被 Alloy 采回 Loki 形成 unknown_service 噪声）。
+// Docker API 的 name filter 是子串/前缀匹配（非 regex），故分列 4 个。
 discovery.docker "scrape" {
-  host = "unix:///var/run/docker.sock"
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+
+  filter {
+    name   = "name"
+    values = ["message-gateway"]
+  }
+  filter {
+    name   = "name"
+    values = ["tpaoscrm"]
+  }
+  filter {
+    name   = "name"
+    values = ["tk-im-driver"]
+  }
+  filter {
+    name   = "name"
+    values = ["cs-pi-agent"]
+  }
+}
+
+discovery.relabel "scrape" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
 }
 
 loki.source.docker "scrape" {
-  host       = "unix:///var/run/docker.sock"
-  targets    = discovery.docker.scrape.targets
-  forward_to = [loki.write.default.receiver]
+  host             = "unix:///var/run/docker.sock"
+  targets          = discovery.docker.scrape.targets
+  forward_to       = [loki.write.default.receiver]
+  relabel_rules    = discovery.relabel.scrape.rules
+  refresh_interval = "5s"
 }
 
 // ── nginx access log 采集 ──
