@@ -1,0 +1,14 @@
+route:
+  receiver: "feishu-bot"
+  group_by: ["alertname", "container"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: "feishu-bot"
+    webhook_configs:
+      # 第一版：直发飞书自定义机器人 webhook（如不开签名校验，直接填 webhook URL）
+      # 若要签名校验/富文本渲染，启用 compose 里 webhook-feishu 服务并把 url 指向它。
+      - url: "https://open.feishu.cn/open-apis/bot/v2/hook/YOUR_WEBHOOK_TOKEN"
+        send_resolved: true

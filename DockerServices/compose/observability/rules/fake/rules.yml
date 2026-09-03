@@ -1,0 +1,38 @@
+groups:
+  # ── 规则 1：应用 ERROR 突增（代码层） ──
+  - name: app-errors
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(count_over_time({container=~"message-gateway|tpaoscrm|tk-im-driver|cs-pi-agent"}
+            |= "ERROR" [5m])) by (container) > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.container }} ERROR 突增"
+          description: "最近 5 分钟 {{ $labels.container }} 的 ERROR 日志 {{ $value }} 条（阈值 50）。"
+
+      - alert: PanicOrCrash
+        expr: |
+          sum(count_over_time({container=~"message-gateway|tpaoscrm|tk-im-driver|cs-pi-agent"}
+            |~ "panic:|fatal error:|Traceback|UnhandledPromiseRejection|Exception" [5m])) by (container) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.container }} panic/异常"
+          description: "检测到 panic/异常日志：{{ $labels.container }}。"
+
+  # ── 规则 2：nginx 5xx 突增（用户入口） ──
+  - name: nginx-5xx
+    rules:
+      - alert: Nginx5xxSpike
+        expr: |
+          sum(count_over_time({filename="/var/log/nginx/tpaos_admin_access.log"}
+            |~ " 5[0-9][0-9] " [5m])) > 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "nginx 5xx 突增"
+          description: "最近 5 分钟 nginx 5xx 响应 {{ $value }} 次（阈值 20）。"

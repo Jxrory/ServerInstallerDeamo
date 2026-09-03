@@ -1,0 +1,79 @@
+# Shared service defaults. base.yml is the canonical source - keep in sync.
+# (YAML anchors don't cross file boundaries in compose, so each file that
+# uses <<: *base-config must define its own copy of the anchor.)
+x-base-config: &base-config
+  restart: unless-stopped
+  networks:
+    - ops-network
+  logging:
+    driver: json-file
+    options:
+      max-size: "200m"
+      max-file: "10"
+
+networks:
+  ops-network:
+    external: true
+
+volumes:
+  loki-data:
+  alertmanager-data:
+
+# ============================================================
+# Grafana Loki + Alloy + Alertmanager 日志巡检监控栈
+# ADR: TpaOsWiki/docs/adr/0002-loki-monitoring-stack.md
+# 方案: TpaOsWiki/方案设计/grafana-loki-log-scanning.md
+# 告警链路: Alloy 采集 Docker + nginx 日志 -> Loki ->
+#           Loki Ruler (rules.yml) -> Alertmanager -> 飞书机器人
+# ============================================================
+services:
+  loki:
+    <<: *base-config
+    image: grafana/loki:3.3.0
+    container_name: loki
+    command: ["-config.file=/etc/loki/local-config.yaml", "-config.expand-env=true"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - ./observability/rules:/loki/rules:ro
+      - loki-data:/loki
+
+  alloy:
+    <<: *base-config
+    image: grafana/alloy:latest
+    container_name: alloy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log/nginx:/var/log/nginx:ro
+      - ./observability/config.alloy:/etc/alloy/config.alloy:ro
+    ports:
+      - "12345:12345"
+    command:
+      - run
+      - --stability.level=experimental
+      - /etc/alloy/config.alloy
+
+  alertmanager:
+    <<: *base-config
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/data
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/data
+
+  # 极简适配器：Alertmanager webhook -> 飞书自定义机器人（可选，若需签名/渲染）
+  # 第一版可用 Alertmanager 直发裸 webhook，需适配器时启用本服务。
+  # webhook-feishu:
+  #   <<: *base-config
+  #   build: ./observability/webhook-feishu
+  #   container_name: webhook-feishu
+  #   environment:
+  #     FEISHU_WEBHOOK_URL: ${FEISHU_WEBHOOK_URL:?FEISHU_WEBHOOK_URL is required}
+  #   ports:
+  #     - "9100:9100"

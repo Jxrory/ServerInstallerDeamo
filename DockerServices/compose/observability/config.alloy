@@ -1,0 +1,37 @@
+// Grafana Alloy 采集配置
+// 采集 Docker 容器日志（docker.sock，零侵入）+ nginx access log -> Loki
+
+// ── Docker 容器日志采集 ──
+discovery.docker "scrape" {
+  host = "unix:///var/run/docker.sock"
+}
+
+loki.source.docker "scrape" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.scrape.targets
+  forward_to    = [loki.write.default.receiver]
+  relabel_rules = discovery.relabel.scrape.rules
+}
+
+discovery.relabel "scrape" {
+  rules = []
+}
+
+// ── nginx access log 采集 ──
+local.file_match "nginx_access" {
+  path_targets = [{
+    path = "/var/log/nginx/tpaos_admin_access.log"
+  }]
+}
+
+loki.source.file "nginx_access" {
+  targets    = local.file_match.nginx_access.targets
+  forward_to = [loki.write.default.receiver]
+}
+
+// ── 写入 Loki ──
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
