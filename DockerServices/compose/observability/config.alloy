@@ -20,7 +20,7 @@ discovery.relabel "scrape" {
 // ── nginx access log 采集 ──
 local.file_match "nginx_access" {
   path_targets = [{
-    path = "/var/log/nginx/tpaos_admin_access.log"
+    path_patterns = ["/var/log/nginx/tpaos_admin_access.log"]
   }]
 }
 
