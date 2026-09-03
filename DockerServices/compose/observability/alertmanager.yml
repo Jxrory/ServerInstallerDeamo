@@ -8,7 +8,6 @@ route:
 receivers:
   - name: "feishu-bot"
     webhook_configs:
-      # 第一版：直发飞书自定义机器人 webhook（如不开签名校验，直接填 webhook URL）
-      # 若要签名校验/富文本渲染，启用 compose 里 webhook-feishu 服务并把 url 指向它。
-      - url: "https://open.feishu.cn/open-apis/bot/v2/hook/YOUR_WEBHOOK_TOKEN"
+      # 飞书机器人开启签名校验，Alertmanager 无法动态签名，经 webhook-feishu 适配器加签转发。
+      - url: "http://webhook-feishu:9100/alert"
         send_resolved: true

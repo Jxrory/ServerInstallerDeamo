@@ -67,13 +67,16 @@ services:
       - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/data
 
-  # 极简适配器：Alertmanager webhook -> 飞书自定义机器人（可选，若需签名/渲染）
-  # 第一版可用 Alertmanager 直发裸 webhook，需适配器时启用本服务。
-  # webhook-feishu:
-  #   <<: *base-config
-  #   build: ./observability/webhook-feishu
-  #   container_name: webhook-feishu
-  #   environment:
-  #     FEISHU_WEBHOOK_URL: ${FEISHU_WEBHOOK_URL:?FEISHU_WEBHOOK_URL is required}
-  #   ports:
-  #     - "9100:9100"
+  # Alertmanager webhook -> 飞书自定义机器人 适配器（签名校验 + 文本渲染）
+  # 飞书机器人生成时开启"签名校验"：需带 timestamp+sign 动态签名，Alertmanager 无法直接算，
+  # 故经此适配器转发。FEISHU_WEBHOOK_URL / FEISHU_SECRET 取自 env/feishu.env（不入库）。
+  webhook-feishu:
+    <<: *base-config
+    build: ./observability/webhook-feishu
+    image: webhook-feishu:local
+    container_name: webhook-feishu
+    environment:
+      FEISHU_WEBHOOK_URL: ${FEISHU_WEBHOOK_URL:?FEISHU_WEBHOOK_URL is required}
+      FEISHU_SECRET: ${FEISHU_SECRET:-}
+    ports:
+      - "9100:9100"
