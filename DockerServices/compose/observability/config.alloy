@@ -7,20 +7,16 @@ discovery.docker "scrape" {
 }
 
 loki.source.docker "scrape" {
-  host          = "unix:///var/run/docker.sock"
-  targets       = discovery.docker.scrape.targets
-  forward_to    = [loki.write.default.receiver]
-  relabel_rules = discovery.relabel.scrape.rules
-}
-
-discovery.relabel "scrape" {
-  rules = []
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.scrape.targets
+  forward_to = [loki.write.default.receiver]
 }
 
 // ── nginx access log 采集 ──
 local.file_match "nginx_access" {
   path_targets = [{
-    path_patterns = ["/var/log/nginx/tpaos_admin_access.log"]
+    "__path__" = "/var/log/nginx/tpaos_admin_access.log",
+    "job"      = "nginx",
   }]
 }
 
