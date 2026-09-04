@@ -8,6 +8,11 @@ route:
 receivers:
   - name: "feishu-bot"
     webhook_configs:
-      # 飞书机器人开启签名校验，Alertmanager 无法动态签名，经 webhook-feishu 适配器加签转发。
-      - url: "http://webhook-feishu:9100/alert"
+      # 告警统一进 TpaOsBasic（5W+1H 入库/指纹去重/ack/resolve 生命周期），
+      # 飞书签名通知由 Basic 的 FeishuChannel 承担（取代 webhook-feishu，见 ADR-0003）。
+      - url: "http://tpaosbasic:8280/api/v1/internal/alertmanager-webhook"
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /etc/alertmanager/serve-token
         send_resolved: true

@@ -65,18 +65,9 @@ services:
       - "9093:9093"
     volumes:
       - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      # serve token（Basic internal API Bearer），文件由 env/feishu.env 生成，gitignore
+      - ./observability/serve-token:/etc/alertmanager/serve-token:ro
       - alertmanager-data:/data
 
-  # Alertmanager webhook -> 飞书自定义机器人 适配器（签名校验 + 文本渲染）
-  # 飞书机器人生成时开启"签名校验"：需带 timestamp+sign 动态签名，Alertmanager 无法直接算，
-  # 故经此适配器转发。FEISHU_WEBHOOK_URL / FEISHU_SECRET 取自 env/feishu.env（不入库）。
-  webhook-feishu:
-    <<: *base-config
-    build: ./observability/webhook-feishu
-    image: webhook-feishu:local
-    container_name: webhook-feishu
-    environment:
-      FEISHU_WEBHOOK_URL: ${FEISHU_WEBHOOK_URL:?FEISHU_WEBHOOK_URL is required}
-      FEISHU_SECRET: ${FEISHU_SECRET:-}
-    ports:
-      - "9100:9100"
+# （webhook-feishu 已退役：AM webhook 直发 TpaOsBasic，飞书签名由 Basic FeishuChannel 承担，
+#  见 TpaOsWiki/docs/adr/0003-alert-via-tpaosbasic.md）

@@ -1,3 +1,4 @@
 .env
 
 **.DS_Store**
+DockerServices/compose/observability/serve-token
