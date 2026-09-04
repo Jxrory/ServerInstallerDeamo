@@ -2,9 +2,9 @@
 // 采集 Docker 容器日志（docker.sock，零侵入）+ nginx access log -> Loki
 
 // ── Docker 容器日志采集 ──
-// 只采集 4 个业务容器（MG / CRM / driver / CsPiAgent），避免采集监控栈与基础设施自身日志
+// 只采集 5 个业务容器（MG / CRM / Basic / driver / CsPiAgent），避免采集监控栈与基础设施自身日志
 // 造成自采循环（如 Loki 日志被 Alloy 采回 Loki 形成 unknown_service 噪声）。
-// Docker API 的 name filter 是子串/前缀匹配（非 regex），故分列 4 个。
+// Docker API 的 name filter 是子串/前缀匹配（非 regex），故分列 5 个。
 discovery.docker "scrape" {
   host             = "unix:///var/run/docker.sock"
   refresh_interval = "5s"
@@ -16,6 +16,10 @@ discovery.docker "scrape" {
   filter {
     name   = "name"
     values = ["tpaoscrm"]
+  }
+  filter {
+    name   = "name"
+    values = ["tpaosbasic"]
   }
   filter {
     name   = "name"
@@ -40,9 +44,29 @@ discovery.relabel "scrape" {
 loki.source.docker "scrape" {
   host             = "unix:///var/run/docker.sock"
   targets          = discovery.docker.scrape.targets
-  forward_to       = [loki.write.default.receiver]
+  forward_to       = [loki.process.app.receiver]
   relabel_rules    = discovery.relabel.scrape.rules
   refresh_interval = "5s"
+}
+
+// ── 结构化 JSON 日志 label 提取 ──
+// 业务容器输出结构化 JSON 行（time/level/msg/service/env/log_type/request_id 等）。
+// stage.json 提取 level/service；解析失败的非 JSON 文本行（如 Go panic 直写 stderr）原样通过、不打 label，不丢数据。
+// 只打 level/service 两个 label（Q15-A），其余字段留在 JSON 内由 LogQL | json 按需取。
+loki.process "app" {
+  stage.json {
+    expressions = {
+      level   = "level",
+      service = "service",
+    }
+  }
+  stage.labels {
+    values = {
+      level   = "",
+      service = "",
+    }
+  }
+  forward_to = [loki.write.default.receiver]
 }
 
 // ── nginx access log 采集 ──

@@ -2,10 +2,11 @@ groups:
   # ── 规则 1：应用 ERROR 突增（代码层） ──
   - name: app-errors
     rules:
+      # level 是 Alloy 提取的 label，走 stream selector 索引过滤；log_type 是 JSON 字段，须在 | json 之后过滤
       - alert: HighErrorRate
         expr: |
-          sum(count_over_time({container=~"message-gateway|tpaoscrm|tk-im-driver|cs-pi-agent"}
-            |= "ERROR" [5m])) by (container) > 50
+          sum(count_over_time({container=~"message-gateway|tpaoscrm|tpaosbasic|tk-im-driver|cs-pi-agent", level="ERROR"}
+            | json | log_type="app" [5m])) by (container) > 50
         for: 5m
         labels:
           severity: warning
@@ -13,9 +14,23 @@ groups:
           summary: "{{ $labels.container }} ERROR 突增"
           description: "最近 5 分钟 {{ $labels.container }} 的 ERROR 日志 {{ $value }} 条（阈值 50）。"
 
+      # 容器内业务 access 5xx（与 nginx 5xx 并列；log_type 是 JSON 字段，必须 | json 后过滤；
+      # 聚合 by (container) 以保留 ADR-0003 的 alertname|container fingerprint）
+      - alert: App5xx
+        expr: |
+          sum(count_over_time({container=~"message-gateway|tpaoscrm|tpaosbasic|tk-im-driver|cs-pi-agent"}
+            | json | log_type="access" | status >= 500 [5m])) by (container) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.container }} 容器内业务 5xx 突增"
+          description: "最近 5 分钟 {{ $labels.container }} 的 access 5xx 响应 {{ $value }} 次（阈值 10）。"
+
+      # Go panic 是 runtime 直写 stderr 的非 JSON 文本行，| json 解析不了，保持子串/regex 匹配
       - alert: PanicOrCrash
         expr: |
-          sum(count_over_time({container=~"message-gateway|tpaoscrm|tk-im-driver|cs-pi-agent"}
+          sum(count_over_time({container=~"message-gateway|tpaoscrm|tpaosbasic|tk-im-driver|cs-pi-agent"}
             |~ "panic:|fatal error:|Traceback|UnhandledPromiseRejection|Exception" [5m])) by (container) > 0
         labels:
           severity: critical
